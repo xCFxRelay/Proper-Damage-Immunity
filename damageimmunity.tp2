@@ -73,11 +73,12 @@ ACTION_DEFINE_ASSOCIATIVE_ARRAY	TYP_ARRAY BEGIN
 	1024   =>	~MCOLD~
 	2048   =>   2048
 END
+
  
 COPY_EXISTING_REGEXP GLOB ~^.+\.itm$~ ~override~
 
 	PATCH_IF (SOURCE_SIZE > 0x71) BEGIN
-	SET found_type=0
+    SET found_type=0
     READ_LONG 0x64 ab_off
     READ_SHORT 0x68 num_ab
     READ_LONG 0x6a ef_off
@@ -96,36 +97,17 @@ COPY_EXISTING_REGEXP GLOB ~^.+\.itm$~ ~override~
                     READ_LONG (ef_off+((eff+ef_ind)*0x30)+0x08) dtype           // Saving the damage type
 						SET ptype = $TYP_ARRAY(EVAL ~%element%~)                // Associates a damage type from the item to a protection type from Kjernon's splprot array
                         PATCH_IF ptype <= 1024 BEGIN
+						
 					END	
 				END
-			END
+			END	
+			
+		END			
+    END
+		PATCH_IF found_type=1 BEGIN
+		LPF add_entry_inline STR_VAR arguments="opcode=>324 parameter2=>ptype resource=>%SOURCE_RES% target=>2 timing=>1" type=effect file_ext=ITM END
 		END
-	
-PATCH_IF found_type=1 BEGIN
-LPF CLONE_EFFECT
-INT_VAR
-match_opcode = 12
-match_parameter2 = dtype
-opcode = 324
-power = 0
-target = 2 
-duration = 1 
-parameter2 = ptype
-timing = 0
-dicenumber = 0
-dicesize = 0 
-savingthrow = 0
-savebonus = 0
-special = 1
-STR_VAR
-insert = first
-resource = EVAL ~%SOURCE_RES%~
-END
-PATCH_PRINT ~source is %SOURCE_RES% damage number is %element% and protection number is %ptype%~	 // Debug
-	
-	END
-END
-
+BUT_ONLY
 
 COPY_EXISTING_REGEXP GLOB ~^.+\.spl$~ ~override~
 
@@ -153,35 +135,8 @@ COPY_EXISTING_REGEXP GLOB ~^.+\.spl$~ ~override~
 				END
 			END
 		END
-	
-PATCH_IF found_type=1 BEGIN
-LPF CLONE_EFFECT
-INT_VAR
-match_opcode = 12
-match_parameter2 = dtype
-opcode = 324
-power = 0
-target = 2 
-duration = 1 
-parameter2 = ptype
-timing = 0
-dicenumber = 0
-dicesize = 0 
-savingthrow = 0
-savebonus = 0
-special = 1
-STR_VAR
-insert = first
-resource = EVAL ~%SOURCE_RES%~
-END
-PATCH_PRINT ~source is %SOURCE_RES% damage number is %element% and protection number is %ptype%~	 // Debug
-	
 	END
-END
-		
-	
-	
-	
-	
-	
-			
+		PATCH_IF found_type=1 BEGIN
+		LPF add_entry_inline STR_VAR arguments="opcode=>324 parameter2=>ptype resource=>%SOURCE_RES% target=>2 timing=>1" type=effect file_ext=SPL END
+		END
+BUT_ONLY 
